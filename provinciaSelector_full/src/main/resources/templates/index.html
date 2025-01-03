@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selector de Provincia</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Selector de Ubicación</h1>
+    <form>
+        <div class="mb-3">
+            <label for="provincia" class="form-label">Provincia</label>
+            <select id="provincia" class="form-select">
+                <option selected>Seleccione una provincia</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="canton" class="form-label">Cantón</label>
+            <select id="canton" class="form-select">
+                <option selected>Seleccione un cantón</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="parroquia" class="form-label">Parroquia</label>
+            <select id="parroquia" class="form-select">
+                <option selected>Seleccione una parroquia</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <h5>Código</h5>
+            <h2 style="color:orange" id="resultados"></h2>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        const baseUrl = "/";
+
+        // Cargar provincias
+        $.get(baseUrl + "provincias", function(data) {
+            $.each(data, function(key, value) {
+                $("#provincia").append(`<option value="${key}">${value.provincia}</option>`);
+            });
+        });
+
+        // Cargar cantones cuando se selecciona una provincia
+        $("#provincia").change(function() {
+            const provinciaId = $(this).val();
+            $("#canton").html('<option selected>Seleccione un cantón</option>');
+            $("#parroquia").html('<option selected>Seleccione una parroquia</option>');
+
+            if (provinciaId) {
+                $.get(baseUrl + "cantones", { provinciaId: provinciaId }, function(data) {
+                    $.each(data, function(key, value) {
+                        $("#canton").append(`<option value="${key}">${value.canton}</option>`);
+                    });
+                });
+            }
+        });
+
+        // Cargar parroquias cuando se selecciona un cantón
+        $("#canton").change(function() {
+            const provinciaId = $("#provincia").val();
+            const cantonId = $(this).val();
+            $("#parroquia").html('<option selected>Seleccione una parroquia</option>');
+
+            if (provinciaId && cantonId) {
+                $.get(baseUrl + "parroquias", { provinciaId: provinciaId, cantonId: cantonId }, function(data) {
+                    $.each(data, function(key, value) {
+                        $("#parroquia").append(`<option value="${key}">${value}</option>`);
+                    });
+                });
+            }
+        });
+
+        // Mostrar los códigos seleccionados
+        $("#parroquia").change(function() {
+            const provinciaId = $("#provincia").val();
+            const cantonId = $("#canton").val();
+            const parroquiaId = $(this).val();
+            $("#resultados").text(`${provinciaId}.${cantonId}.${parroquiaId}`);
+        });
+    });
+</script>
+</body>
+</html>
